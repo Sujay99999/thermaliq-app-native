@@ -4,6 +4,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ComparisonTable from '../components/ComparisonTable';
 import ScenarioSimulator from '../components/ScenarioSimulator';
+import RebateEligibilityBox from '../components/RebateEligibilityBox';
+import GlobalFooter from '../components/GlobalFooter';
+import AnimatedCard from '../components/AnimatedCard';
+import AnimatedButton from '../components/AnimatedButton';
 
 export default function Results() {
   const navigation = useNavigation();
@@ -96,10 +100,15 @@ export default function Results() {
           )}
         </LinearGradient>
 
+        {/* Rebate Eligibility Box */}
+        <RebateEligibilityBox 
+          eligibility={results.rebateEligibility || {}}
+        />
+
         {/* Metrics Grid */}
         <View style={styles.metricsGrid}>
           {/* Savings Card */}
-          <View style={styles.metricCard}>
+          <AnimatedCard variant="elevated" delay={200}>
             <View style={styles.metricHeader}>
               <View style={[styles.metricIcon, { backgroundColor: '#D1FAE5' }]}>
                 <Ionicons name="trending-down" size={24} color="#10b981" />
@@ -109,26 +118,26 @@ export default function Results() {
             <View style={styles.metricContent}>
               <View style={styles.metricRow}>
                 <Text style={styles.metricLabel}>Per Day</Text>
-                <Text style={styles.metricValueSuccess}>${results.savingsPerDay}</Text>
+                <Text style={styles.metricValueSuccess}>${results.savingsPerDay?.toFixed(2) || '0.00'}</Text>
               </View>
               <View style={styles.metricRow}>
                 <Text style={styles.metricLabel}>Per Month</Text>
-                <Text style={styles.metricValue}>${results.savingsPerMonth}</Text>
+                <Text style={styles.metricValue}>${results.savingsPerMonth?.toFixed(2) || '0.00'}</Text>
               </View>
               <View style={styles.metricRow}>
                 <Text style={styles.metricLabel}>Per Year</Text>
-                <Text style={styles.metricValue}>${results.savingsPerYear}</Text>
+                <Text style={styles.metricValue}>${results.savingsPerYear?.toFixed(2) || '0.00'}</Text>
               </View>
             </View>
             <View style={styles.metricFooter}>
               <Text style={styles.metricFooterText}>
-                Energy saved: <Text style={styles.boldText}>{results.energySavedKwh} kWh/day</Text>
+                Energy saved: <Text style={styles.boldText}>{results.energySavedKwh?.toFixed(1) || '0.0'} kWh/day</Text>
               </Text>
             </View>
-          </View>
+          </AnimatedCard>
 
           {/* Building Physics Card */}
-          <View style={styles.metricCard}>
+          <AnimatedCard variant="elevated" delay={300}>
             <View style={styles.metricHeader}>
               <View style={[styles.metricIcon, { backgroundColor: '#DBEAFE' }]}>
                 <Ionicons name="time" size={24} color="#1976D2" />
@@ -138,19 +147,19 @@ export default function Results() {
             <View style={styles.metricContent}>
               <View style={styles.physicsItem}>
                 <Text style={styles.physicsLabel}>Thermal Time Constant (τ)</Text>
-                <Text style={styles.physicsValue}>{results.thermalTimeConstant} hours</Text>
+                <Text style={styles.physicsValue}>{results.thermalTimeConstant?.toFixed(1) || '0.0'} hours</Text>
                 <Text style={styles.physicsDescription}>How fast your building changes temperature</Text>
               </View>
               <View style={styles.physicsItem}>
                 <Text style={styles.physicsLabel}>Break-Even Time</Text>
-                <Text style={styles.physicsValue}>{results.breakEvenTime} hours</Text>
+                <Text style={styles.physicsValue}>{results.breakEvenTime?.toFixed(1) || '0.0'} hours</Text>
                 <Text style={styles.physicsDescription}>Minimum absence for savings</Text>
               </View>
             </View>
-          </View>
+          </AnimatedCard>
 
           {/* Performance Card */}
-          <View style={styles.metricCard}>
+          <AnimatedCard variant="elevated" delay={400}>
             <View style={styles.metricHeader}>
               <View style={[styles.metricIcon, { backgroundColor: '#FEF3C7' }]}>
                 <Ionicons name="flash" size={24} color="#fbbf24" />
@@ -164,19 +173,19 @@ export default function Results() {
                   <View
                     style={[
                       styles.progressBarFill,
-                      { width: `${results.percentSaved}%` },
+                      { width: `${Math.min(results.percentSaved || 0, 100)}%` },
                     ]}
                   />
                 </View>
-                <Text style={styles.performanceValue}>{results.percentSaved}% saved</Text>
+                <Text style={styles.performanceValue}>{results.percentSaved?.toFixed(1) || '0.0'}% saved</Text>
               </View>
               <View style={styles.performanceItem}>
                 <Text style={styles.performanceLabel}>Recovery Time</Text>
-                <Text style={styles.performanceValue}>{results.recoveryTime} minutes</Text>
+                <Text style={styles.performanceValue}>{results.recoveryTime || 0} minutes</Text>
                 <Text style={styles.performanceDescription}>Time to reach comfort temperature</Text>
               </View>
             </View>
-          </View>
+          </AnimatedCard>
         </View>
 
         {/* Scenario Simulator */}
@@ -197,19 +206,23 @@ export default function Results() {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity
+          <AnimatedButton
+            title="Try Different Scenario"
             onPress={() => navigation.navigate('InputForm')}
+            variant="secondary"
             style={styles.actionButton}
-          >
-            <Text style={styles.actionButtonText}>Try Different Scenario</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryButton]}
-          >
-            <Text style={[styles.actionButtonText, styles.primaryButtonText]}>Download Report</Text>
-          </TouchableOpacity>
+          />
+          <AnimatedButton
+            title="Download Report"
+            onPress={() => {}}
+            variant="primary"
+            icon="download"
+            iconPosition="right"
+            style={styles.actionButton}
+          />
         </View>
       </ScrollView>
+      <GlobalFooter />
     </LinearGradient>
   );
 }
@@ -357,16 +370,6 @@ const styles = StyleSheet.create({
     gap: 16,
     marginBottom: 24,
   },
-  metricCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   metricHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -396,16 +399,21 @@ const styles = StyleSheet.create({
   metricLabel: {
     fontSize: 14,
     color: '#666',
+    flex: 1,
   },
   metricValue: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
+    textAlign: 'right',
+    minWidth: 80,
   },
   metricValueSuccess: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#10b981',
+    textAlign: 'right',
+    minWidth: 80,
   },
   metricFooter: {
     marginTop: 16,
@@ -421,27 +429,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   physicsLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 6,
+    fontWeight: '500',
   },
   physicsValue: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   physicsDescription: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#999',
+    lineHeight: 16,
   },
   performanceItem: {
     marginBottom: 16,
   },
   performanceLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
     marginBottom: 8,
+    fontWeight: '500',
   },
   progressBarBackground: {
     width: '100%',

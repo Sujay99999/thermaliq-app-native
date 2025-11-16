@@ -44,6 +44,7 @@ export default function Step2Building({ formData, setFormData, errors = {} }) {
           </Text>
           <TextInput
             placeholder="e.g., 2000"
+            placeholderTextColor="#9CA3AF"
             value={formData.floorArea || ''}
             onChangeText={(text) => setFormData({ ...formData, floorArea: text })}
             style={[styles.input, errors.floorArea && styles.inputError]}
@@ -51,6 +52,24 @@ export default function Step2Building({ formData, setFormData, errors = {} }) {
           />
           {errors.floorArea && (
             <Text style={styles.errorText}>{errors.floorArea}</Text>
+          )}
+        </View>
+
+        {/* Ceiling Height */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
+            Ceiling Height (ft) <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            placeholder="e.g., 8"
+            placeholderTextColor="#9CA3AF"
+            value={formData.ceilingHeight || ''}
+            onChangeText={(text) => setFormData({ ...formData, ceilingHeight: text })}
+            style={[styles.input, errors.ceilingHeight && styles.inputError]}
+            keyboardType="numeric"
+          />
+          {errors.ceilingHeight && (
+            <Text style={styles.errorText}>{errors.ceilingHeight}</Text>
           )}
         </View>
 
@@ -175,4 +194,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-

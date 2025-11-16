@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function Step6Review({ formData = {} }) {
+export default function Step6Review({ formData = {}, errors = {} }) {
   const formatValue = (value, suffix = '') => {
     if (!value || value === '') return 'Not provided';
     return `${value}${suffix}`;
@@ -126,9 +126,34 @@ export default function Step6Review({ formData = {} }) {
           </View>
         </View>
 
+        {/* Tax Incentives */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🏛️ Tax Incentives (Optional)</Text>
+          <View style={styles.grid}>
+            <View style={styles.gridItem}>
+              <Text style={styles.label}>Homeowner:</Text>
+              <Text style={styles.value}>{formatCapitalize(formData.ownsHome)}</Text>
+            </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.label}>Primary Residence:</Text>
+              <Text style={styles.value}>{formatCapitalize(formData.primaryResidence)}</Text>
+            </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.label}>Equipment Selected:</Text>
+              <Text style={styles.value}>{(formData.equipmentSelected || []).length || 'None'} items</Text>
+            </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.label}>Project Cost:</Text>
+              <Text style={styles.value}>
+                {formData.projectCost ? `$${formData.projectCost}` : 'Not provided'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* Ready Message */}
-        <View style={styles.readyBox}>
-          <Text style={styles.readyText}>
+        <View style={[styles.readyBox, { backgroundColor: '#DBEAFE', borderColor: '#93C5FD' }]}>
+          <Text style={[styles.readyText, { color: '#1E3A8A' }]}>
             Ready to calculate your optimal HVAC strategy!
           </Text>
         </View>

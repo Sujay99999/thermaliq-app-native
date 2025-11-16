@@ -19,7 +19,8 @@ export default function Step5Utility({ formData, setFormData, errors = {} }) {
           <View style={styles.inputWithIcon}>
             <Text style={styles.iconText}>$</Text>
             <TextInput
-              placeholder="150"
+              placeholder="e.g., 150"
+              placeholderTextColor="#9CA3AF"
               value={formData.monthlyBill || ''}
               onChangeText={(text) => setFormData({ ...formData, monthlyBill: text })}
               style={styles.inputWithIconInput}
@@ -44,9 +45,15 @@ export default function Step5Utility({ formData, setFormData, errors = {} }) {
           <View style={styles.inputWithIcon}>
             <Text style={styles.iconText}>$</Text>
             <TextInput
-              placeholder="0.13"
-              value={formData.electricityRate || ''}
-              onChangeText={(text) => setFormData({ ...formData, electricityRate: text })}
+              placeholder="e.g., 0.13"
+              placeholderTextColor="#9CA3AF"
+              value={formData.electricityRate ?? ''}
+              onChangeText={(text) => {
+                // Allow empty string or valid number
+                if (text === '' || !isNaN(Number(text))) {
+                  setFormData({ ...formData, electricityRate: text });
+                }
+              }}
               style={styles.inputWithIconInput}
               keyboardType="decimal-pad"
             />

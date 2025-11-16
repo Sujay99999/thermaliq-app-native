@@ -1,10 +1,12 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from '../screens/Home';
+import Consent from '../screens/Consent';
 import InputForm from '../screens/InputForm';
 import Loading from '../screens/Loading';
 import Results from '../screens/Results';
 import RoomScan from '../screens/RoomScan';
+import Error from '../screens/Error';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +31,11 @@ export default function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen 
+          name="Consent" 
+          component={Consent}
+          options={{ title: 'Privacy & Data Usage' }}
+        />
+        <Stack.Screen 
           name="InputForm" 
           component={InputForm}
           options={{ title: 'Input Form' }}
@@ -47,6 +54,11 @@ export default function AppNavigator() {
           name="RoomScan" 
           component={RoomScan}
           options={{ title: 'Scan Room' }}
+        />
+        <Stack.Screen 
+          name="Error" 
+          component={Error}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

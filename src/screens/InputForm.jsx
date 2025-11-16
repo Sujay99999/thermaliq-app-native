@@ -9,15 +9,122 @@ import Step3Insulation from '../components/forms/Step3Insulation';
 import Step4Schedule from '../components/forms/Step4Schedule';
 import Step5Utility from '../components/forms/Step5Utility';
 import Step6Review from '../components/forms/Step6Review';
+import Step7Incentives from '../components/forms/Step7Incentives';
 
 export default function InputForm({ route }) {
   const navigation = useNavigation();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(route?.params?.formData || {});
+  const [errors, setErrors] = useState({});
   
-  const totalSteps = 6;
+  const totalSteps = 7;
+
+  // Validation functions for each step
+  const validateStep = (step) => {
+    const stepErrors = {};
+    
+    switch (step) {
+      case 1:
+        // Step 1: Location & Climate
+        if (!formData.zipCode || formData.zipCode.trim() === '') {
+          stepErrors.zipCode = 'ZIP code is required';
+        }
+        if (!formData.outdoorTemp || formData.outdoorTemp.trim() === '') {
+          stepErrors.outdoorTemp = 'Outdoor temperature is required';
+        } else if (isNaN(Number(formData.outdoorTemp))) {
+          stepErrors.outdoorTemp = 'Outdoor temperature must be a number';
+        }
+        break;
+        
+      case 2:
+        // Step 2: Building Basics
+        if (!formData.homeType || formData.homeType === '') {
+          stepErrors.homeType = 'Home type is required';
+        }
+        if (!formData.floorArea || formData.floorArea.trim() === '') {
+          stepErrors.floorArea = 'Floor area is required';
+        } else if (isNaN(Number(formData.floorArea)) || Number(formData.floorArea) <= 0) {
+          stepErrors.floorArea = 'Floor area must be a positive number';
+        }
+        if (!formData.constructionType || formData.constructionType === '') {
+          stepErrors.constructionType = 'Construction type is required';
+        }
+        if (!formData.constructionEra || formData.constructionEra === '') {
+          stepErrors.constructionEra = 'Construction era is required';
+        }
+        break;
+        
+      case 3:
+        // Step 3: Insulation & Windows
+        if (!formData.insulationQuality || formData.insulationQuality === '') {
+          stepErrors.insulationQuality = 'Insulation quality is required';
+        }
+        if (!formData.windowType || formData.windowType === '') {
+          stepErrors.windowType = 'Window type is required';
+        }
+        if (!formData.hvacType || formData.hvacType === '') {
+          stepErrors.hvacType = 'HVAC system type is required';
+        }
+        if (!formData.hvacAge || formData.hvacAge === '') {
+          stepErrors.hvacAge = 'HVAC system age is required';
+        }
+        break;
+        
+      case 4:
+        // Step 4: Schedule & Comfort
+        if (!formData.desiredTemp || formData.desiredTemp.trim() === '') {
+          stepErrors.desiredTemp = 'Desired temperature is required';
+        } else if (isNaN(Number(formData.desiredTemp))) {
+          stepErrors.desiredTemp = 'Desired temperature must be a number';
+        }
+        if (!formData.absenceDuration || formData.absenceDuration === '') {
+          stepErrors.absenceDuration = 'Absence duration is required';
+        }
+        if (!formData.absenceStartTime || formData.absenceStartTime.trim() === '') {
+          stepErrors.absenceStartTime = 'Absence start time is required';
+        }
+        if (!formData.daysPerWeek || formData.daysPerWeek === '') {
+          stepErrors.daysPerWeek = 'Days per week is required';
+        }
+        break;
+        
+      case 5:
+        // Step 5: Utility Costs (all optional, no validation needed)
+        break;
+        
+      case 6:
+        // Step 6: Tax Incentives (all optional, no validation needed)
+        break;
+        
+      case 7:
+        // Step 7: Review - validate all critical fields
+        const criticalFields = ['outdoorTemp', 'desiredTemp', 'absenceDuration', 'floorArea'];
+        criticalFields.forEach(field => {
+          const value = formData[field];
+          if (value === undefined || value === null || value === '' || (typeof value === 'string' && value.trim() === '')) {
+            stepErrors[field] = 'This field is required';
+          }
+        });
+        break;
+    }
+    
+    return stepErrors;
+  };
 
   const handleNext = () => {
+    // Validate current step before proceeding
+    const stepErrors = validateStep(currentStep);
+    
+    if (Object.keys(stepErrors).length > 0) {
+      // Show errors
+      setErrors(stepErrors);
+      // Scroll to top to show errors
+      return;
+    }
+    
+    // Clear errors for this step
+    setErrors({});
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -28,6 +135,8 @@ export default function InputForm({ route }) {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // Clear errors when going back
+      setErrors({});
       setCurrentStep(currentStep - 1);
     }
   };
@@ -35,17 +144,19 @@ export default function InputForm({ route }) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1Location formData={formData} setFormData={setFormData} />;
+        return <Step1Location formData={formData} setFormData={setFormData} errors={errors} />;
       case 2:
-        return <Step2Building formData={formData} setFormData={setFormData} />;
+        return <Step2Building formData={formData} setFormData={setFormData} errors={errors} />;
       case 3:
-        return <Step3Insulation formData={formData} setFormData={setFormData} />;
+        return <Step3Insulation formData={formData} setFormData={setFormData} errors={errors} />;
       case 4:
-        return <Step4Schedule formData={formData} setFormData={setFormData} />;
+        return <Step4Schedule formData={formData} setFormData={setFormData} errors={errors} />;
       case 5:
-        return <Step5Utility formData={formData} setFormData={setFormData} />;
+        return <Step5Utility formData={formData} setFormData={setFormData} errors={errors} />;
       case 6:
-        return <Step6Review formData={formData} />;
+        return <Step7Incentives formData={formData} setFormData={setFormData} errors={errors} />;
+      case 7:
+        return <Step6Review formData={formData} errors={errors} />;
       default:
         return null;
     }
@@ -76,6 +187,16 @@ export default function InputForm({ route }) {
             />
           </View>
         </View>
+
+        {/* Error Summary */}
+        {Object.keys(errors).length > 0 && (
+          <View style={styles.errorSummary}>
+            <Ionicons name="alert-circle" size={20} color="#EF4444" />
+            <Text style={styles.errorSummaryText}>
+              Please fix the errors below before proceeding
+            </Text>
+          </View>
+        )}
 
         {/* Form Content */}
         <View style={styles.formContent}>
@@ -142,6 +263,23 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#1976D2',
     borderRadius: 6,
+  },
+  errorSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorSummaryText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#991B1B',
+    fontWeight: '500',
   },
   formContent: {
     marginBottom: 24,
