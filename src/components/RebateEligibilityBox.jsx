@@ -20,18 +20,20 @@ export default function RebateEligibilityBox({ eligibility = {} }) {
   const hasEligibilityData = eligibility && Object.keys(eligibility).length > 0;
 
   // Pulsing animation
+  // Note: useNativeDriver must be false because we're also animating borderColor
+  // on the same view, which cannot use native driver
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.05,
           duration: 1500,
-          useNativeDriver: true,
+          useNativeDriver: false, // Changed to false to match borderColor animation
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 1500,
-          useNativeDriver: true,
+          useNativeDriver: false, // Changed to false to match borderColor animation
         }),
       ])
     );

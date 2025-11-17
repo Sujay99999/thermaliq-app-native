@@ -81,55 +81,124 @@ export default function Loading() {
   useEffect(() => {
     const performCalculation = async () => {
       setShowSkeleton(false);
+      
+      // Minimum processing time (in milliseconds) - ensures loading screen shows for at least this long
+      const MIN_PROCESSING_TIME = 3500; // 3.5 seconds
+      const startTime = Date.now();
+      
+      // Start progress animation
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
+          // Slow down as we approach 90% to make it feel more realistic
           if (prev >= 90) {
-            clearInterval(progressInterval);
             return 90;
           }
-          return prev + 2;
+          // Gradually slow down the progress increment
+          const increment = prev > 70 ? 1 : prev > 40 ? 1.5 : 2;
+          return Math.min(prev + increment, 90);
         });
       }, 100);
 
       try {
         const normalizedFormData = normalizeFormData(formData);
         const roomData = route.params?.roomData || {};
-        const result = await calculateHVAC(normalizedFormData, roomData);
+        
+        // Start API call
+        const calculationPromise = calculateHVAC(normalizedFormData, roomData);
+        
+        // Wait for both API call and minimum processing time
+        const [result, _] = await Promise.all([
+          calculationPromise,
+          new Promise(resolve => setTimeout(resolve, MIN_PROCESSING_TIME))
+        ]);
+        
+        // Calculate remaining time to ensure minimum processing time
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, MIN_PROCESSING_TIME - elapsedTime);
+        
+        // Complete progress bar animation
+        clearInterval(progressInterval);
+        
+        // Animate progress to 100% smoothly
+        const finalProgressInterval = setInterval(() => {
+          setProgress((prev) => {
+            if (prev >= 100) {
+              clearInterval(finalProgressInterval);
+              return 100;
+            }
+            return Math.min(prev + 5, 100);
+          });
+        }, 50);
+        
+        // Wait for remaining time and progress animation
+        await new Promise(resolve => setTimeout(resolve, remainingTime + 300));
+        clearInterval(finalProgressInterval);
+        setProgress(100);
         
         if (!result.success) {
-          clearInterval(progressInterval);
-          setProgress(100);
           setTimeout(() => {
             navigation.navigate('Error', {
               error: result.error || { message: 'Failed to calculate HVAC strategy' },
               formData,
             });
-          }, 500);
+          }, 300);
           return;
         }
         
-        clearInterval(progressInterval);
-        setProgress(100);
-        
+        // Navigate to results after a brief pause
         setTimeout(() => {
           navigation.navigate('Results', {
             formData,
             results: result.data,
           });
-        }, 500);
+        }, 300);
       } catch (error) {
+        // Calculate remaining time
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, MIN_PROCESSING_TIME - elapsedTime);
+        
         clearInterval(progressInterval);
+        
+        // Complete progress animation even on error
+        const finalProgressInterval = setInterval(() => {
+          setProgress((prev) => {
+            if (prev >= 100) {
+              clearInterval(finalProgressInterval);
+              return 100;
+            }
+            return Math.min(prev + 5, 100);
+          });
+        }, 50);
+        
+        await new Promise(resolve => setTimeout(resolve, remainingTime + 300));
+        clearInterval(finalProgressInterval);
         setProgress(100);
+        
+        // Enhanced error handling with timeout detection
+        let errorMessage = error.userMessage || 
+                          error.response?.data?.error?.message || 
+                          error.message || 
+                          'An unexpected error occurred';
+        
+        // Check for timeout errors
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          errorMessage = error.userMessage || 'Request timed out. The calculation is taking longer than expected. Please check your connection and try again.';
+        } else if (error.code === 'ECONNREFUSED') {
+          errorMessage = error.userMessage || 'Cannot connect to the server. Please make sure the backend is running.';
+        } else if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
+          errorMessage = error.userMessage || 'Network error. Please check your internet connection.';
+        }
         
         setTimeout(() => {
           navigation.navigate('Error', {
             error: {
-              message: error.response?.data?.error?.message || error.message || 'An unexpected error occurred',
+              message: errorMessage,
               response: error.response,
+              code: error.code,
             },
             formData,
           });
-        }, 500);
+        }, 300);
       }
     };
 
